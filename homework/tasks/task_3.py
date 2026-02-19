@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from typing import Awaitable
+from functools import reduce
 
 
 @dataclass
@@ -20,5 +21,11 @@ async def coroutines_execution_order(coros: list[Awaitable[Ticket]]) -> str:
     #
     # Результат: 'мамамылараму'
     #
-    # YOUR CODE GOES HERE
+    responds = await asyncio.gather(*coros)
 
+    res = reduce(
+        lambda agg, ticket: agg + ticket.key,
+        sorted(responds, key=lambda ticket: ticket.number),
+        ''
+    )
+    return res

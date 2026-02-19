@@ -17,19 +17,27 @@ class BackgroundCoroutinesWatcher:
     def schedule_soon(self, coro: Coroutine):
         # Здесь необходимо реализовать логику планирования корутины.
         #
-        # YOUR CODE GOES HERE
+        task = asyncio.create_task(coro)
+        task.add_done_callback(self._remove_from_running_task)
+
+        self._running_tasks.add(task)
 
     def _remove_from_running_task(self, task: asyncio.Task) -> None:
         self._running_tasks.remove(task)
 
     async def close(self):
         # Здесь необходимо реализовать отмену корутин, которые ещё не успели завершиться.
-        #
-        # YOUR CODE GOES HERE
+        _, pending = await asyncio.wait(self._running_tasks, timeout=0)
+        for t in pending:
+            t.cancel()
 
 
 class FastHandlerWithLongBackgroundTask:
-    def __init__(self, long_task_creator: AbstractLongTaskCreator, bcw: BackgroundCoroutinesWatcher):
+    def __init__(
+            self,
+            long_task_creator: AbstractLongTaskCreator,
+            bcw: BackgroundCoroutinesWatcher
+        ):
         self._long_task_creator = long_task_creator
         self._bcw = bcw
 
